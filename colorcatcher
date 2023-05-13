@@ -1,0 +1,52 @@
+const config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  backgroundColor: '#222',
+  scene: {
+    preload,
+    create,
+    update
+  }
+};
+
+const game = new Phaser.Game(config);
+
+let player, orbs, cursors, score = 0, scoreText;
+
+function preload() {
+  this.load.image('player', 'player.png');
+  this.load.image('orb', 'orb.png');
+}
+
+function create() {
+  player = this.physics.add.sprite(400, 570, 'player');
+  orbs = this.physics.add.group();
+  cursors = this.input.keyboard.createCursorKeys();
+  this.input.keyboard.on('keydown-R', () => player.setTint(0xff0000));
+  this.input.keyboard.on('keydown-G', () => player.setTint(0x00ff00));
+  this.input.keyboard.on('keydown-B', () => player.setTint(0x0000ff));
+  this.time.addEvent({ delay: 1000, callback: spawnOrb, callbackScope: this, loop: true });
+  scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
+  this.physics.add.overlap(player, orbs, catchOrb, null, this);
+}
+
+function update() {
+  if (cursors.left.isDown) player.x -= 5;
+  if (cursors.right.isDown) player.x += 5;
+}
+
+function spawnOrb() {
+  const orb = orbs.create(Phaser.Math.Between(25, 775), -25, 'orb');
+  const colors = [0xff0000, 0x00ff00, 0x0000ff];
+  orb.setTint(colors[Phaser.Math.Between(0, 2)]);
+  orb.body.setVelocityY(Phaser.Math.Between(50, 150));
+}
+
+function catchOrb(player, orb) {
+  if (player.tintTopLeft === orb.tintTopLeft) {
+    orb.disableBody(true, true);
+    score += 10;
+    scoreText.setText('Score: ' + score);
+  }
+}
